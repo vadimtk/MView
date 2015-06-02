@@ -1,0 +1,131 @@
+<html>
+  <head>
+  <title>Test</title>
+      <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script src="http://code.highcharts.com/highcharts.js"></script>
+      <script src="http://d3js.org/queue.v1.min.js"></script>
+  </head>
+  <body>
+<script>
+Highcharts.setOptions({
+	    global: {
+	            useUTC: false
+		        }
+			});
+    var aCharts = []
+     var q = queue(2);
+</script>
+<script>
+function CreateChart(i,mname) {
+
+    $('#whole').append('<span id="box'+i+'" style="float:left;"><span id="container'+i+'" style="height: 250px; width: 900px"></span></span>')
+
+      var chart1 = new Highcharts.Chart({
+        chart: {
+                zoomType: 'x',
+                borderWidth: 1,
+                renderTo: 'container'+i
+        },
+       plotOptions: {
+            series: {
+                marker: {
+                    enabled: false
+                },
+                lineWidth: 1
+            }
+        },
+        title: {
+            text: mname,
+               style: {
+                fontSize: '10px'
+            }
+        },
+        yAxis: {
+        min: 0,
+        startOnTick: false,
+        title: {
+                    text: null
+                }
+        },
+        xAxis: {
+        type: 'datetime',
+        title: {
+                    text: null
+                }
+        },
+        legend: {
+                enabled: true
+        },
+        series: [{
+            name: mname,
+            data: [1, 0, 4],
+        tooltip: {
+           valueDecimals: 2,
+          formatter: function() {
+                var s = '<b>'+ this.x +'</b>';
+                
+                $.each(this.points, function(i, point) {
+                    s += '<br/>'+point.y;
+                });
+                
+                return s;
+            },
+            shared: true
+        }
+        }]
+      });
+}
+
+$(document).ready(function() {
+function LoadChart(i, sid, callback) {
+    $.ajax({
+        url: '/metric/hostid/1/mid/'+i+'/sid/'+sid,
+        async: true,
+        dataType: 'json',
+	complete: function(xhr, status) {
+	            console.log("Ajax status:"+status)
+	            callback(null,i)
+	},
+        success: function(data, status){
+            if(status == 'success')
+            {
+            console.log("Succ:"+i)
+            var chart = $('#container'+i).highcharts();
+            chart.series[0].setData(data, true);
+            }
+        }
+        });
+}
+
+$('#loadbutton').click(function() {
+        console.log(aCharts)
+    for (var i = 0; i < aCharts.length; i++) {
+        console.log('#container'+aCharts[i])
+        LoadChart(aCharts[i])
+    }
+});
+
+for (var i = 0; i < aCharts.length; i++) {
+    console.log('#container'+aCharts[i].id)
+	q.defer(LoadChart, aCharts[i].id, aCharts[i].sid)
+}
+q.awaitAll(function(error, results) { console.log("all done!"); });
+//LoadChart(1)
+
+});
+
+</script>
+  <h1>Metrics Index 2</h1>
+   <div class="span12" id="whole">
+   </div>
+
+<script>
+{{with .Charts}}
+  {{range .}}
+aCharts.push({id:{{.Id}}, name:"{{.Name}}", sid:{{.Sid}}})
+CreateChart({{.Id}},"{{.Name}}")
+  {{end}}
+{{end}}
+</script>
+
+</body>

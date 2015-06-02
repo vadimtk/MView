@@ -1,0 +1,9 @@
+{{define "content"}}
+  <h1>Metrics Index 2</h1>
+{{with .Charts}}
+  {{range .}}
+  Chart<br>
+  {{.Id}},{{.Name}}<br>
+  {{end}}
+  {{end}}
+{{end}}
